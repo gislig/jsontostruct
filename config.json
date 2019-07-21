@@ -1,0 +1,8 @@
+{
+  "host": "localhost",
+  "port": 5432,
+  "user": "support_writer",
+  "password": "helloMyName.123",
+  "dbname": "support",
+  "webserver": "localhost"
+}
