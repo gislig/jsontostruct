@@ -2,13 +2,17 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"reflect"
 	"strings"
 
-	"github.com/gislig/sqltest/middleware"
-	"github.com/gislig/sqltest/models/device"
+	"github.com/gislig/jsontostruct/middleware"
+	"github.com/gislig/jsontostruct/models/device"
+	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
 
@@ -114,7 +118,7 @@ func InsertIntoTable(q interface{}) {
 	fmt.Println(query)
 }
 
-func main() {
+func ConnectDB() {
 	conf := middleware.GetConfig()
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", conf.Host, conf.Port, conf.User, conf.Password, conf.DBName)
@@ -150,4 +154,87 @@ func main() {
 	//tableName := reflect.TypeOf(User)
 
 	fmt.Println("Successfully connected!")
+}
+
+func APITest(w http.ResponseWriter, r *http.Request, e interface{}) {
+	//bios := device.Bios{}
+	//var e interface{}
+
+	//json.Unmarshal(byteValue, &e)
+	var result map[string]interface{}
+	err := json.NewDecoder(r.Body).Decode(&result)
+	if err != nil {
+		fmt.Println("Does not work")
+	}
+	defer r.Body.Close()
+
+	fmt.Println(result)
+
+	//for k, v := range result {
+	//	switch vv := v.(type) {
+	//	case string:
+	//		fmt.Println("string : ", k, "is", v, " contains:", vv)
+	//	case int:
+	//		fmt.Println("int : ", k, "is", vv)
+	//	case float32:
+	//		fmt.Println("float32 : ", k, "is", v, " contains:", vv)
+	//	case float64:
+	//		fmt.Println("float64 : ", k, "is", v, " contains:", vv)
+	//	}
+	//
+	//}
+
+	//for k, v := range m {
+	//	switch vv := v.(type) {
+	//	case string:
+	//		fmt.Println("string : ", k, "is", v)
+	//	case int:
+	//		fmt.Println("int : ", k, "is", vv)
+	//	case int32:
+	//		fmt.Println("int32 : ", k, "is", vv)
+	//	case int64:
+	//		fmt.Println("int64 : ", k, "is", vv)
+	//	case uint:
+	//		fmt.Println("uint : ", k, "is", vv)
+	//	//case float64:
+	//	//	fmt.Println("float64 : ", k, "is", vv)
+	//	case bool:
+	//		fmt.Println("bool : ", k, "is", vv)
+	//	case []interface{}:
+	//		fmt.Println("interface : ", k, ":")
+	//		for i, u := range vv {
+	//			fmt.Println(i, u)
+	//		}
+	//	default:
+	//		fmt.Println(k, "is an unknown type")
+	//	}
+	//}
+	fmt.Println("\n")
+
+	//decoder := json.NewDecoder(r.Body)
+	//if err := decoder.Decode(&bios); err != nil {
+	//	fmt.Println("error :", err)
+	//	return
+	//}
+	//val := reflect.ValueOf(decoder)
+	//for i := 0; i < val.Type().NumField(); i++ {
+	//	fmt.Println(val.Type().Field(i).Name)
+	//}
+
+	//fmt.Println(val)
+}
+
+func main() {
+	fmt.Println("Starting server..")
+	myRouter := mux.NewRouter().StrictSlash(true)
+
+	biost := bios{}
+
+	myRouter.HandleFunc("/apitest", APITest).Methods("POST")
+
+	bios := device.Bios{}
+	APIReader(bios)
+
+	fmt.Println("Server Started.")
+	log.Fatal(http.ListenAndServe(":8080", myRouter))
 }
